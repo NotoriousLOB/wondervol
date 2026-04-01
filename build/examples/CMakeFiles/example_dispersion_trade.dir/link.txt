@@ -1,0 +1,1 @@
+/usr/bin/clang-22 CMakeFiles/example_dispersion_trade.dir/example_dispersion_trade.c.o -o example_dispersion_trade  -lm 

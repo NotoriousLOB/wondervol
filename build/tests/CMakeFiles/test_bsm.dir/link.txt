@@ -1,0 +1,1 @@
+/usr/bin/clang-22 CMakeFiles/test_bsm.dir/test_bsm.c.o -o test_bsm  -lm 

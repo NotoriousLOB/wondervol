@@ -1,0 +1,1 @@
+/usr/bin/clang-22 CMakeFiles/test_dispersion.dir/test_dispersion.c.o -o test_dispersion  -lm 

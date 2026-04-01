@@ -1,0 +1,153 @@
+Start testing: Apr 01 15:56 PDT
+----------------------------------------------------------
+1/3 Testing: bsm_tests
+1/3 Test: bsm_tests
+Command: "/home/damus/Projects/dispersion/build/tests/test_bsm"
+Directory: /home/damus/Projects/dispersion/build/tests
+"bsm_tests" start time: Apr 01 15:56 PDT
+Output:
+----------------------------------------------------------
+=== BSM Pricing Tests ===
+
+✓ ATM call (S=K=100, T=1, r=5%, vol=20%) (got 10.4505756193, expected 10.4505835722)
+✓ ATM put (S=K=100, T=1, r=5%, vol=20%) (got 5.5735180694, expected 5.5735260222)
+✓ Deep ITM call > intrinsic
+✓ Deep OTM call near zero
+✓ Put-call parity (got 103.7466642484, expected 103.7466642484)
+✓ Expired call = intrinsic (got 10.0000000000, expected 10.0000000000)
+✓ Expired put = intrinsic (got 10.0000000000, expected 10.0000000000)
+✓ Zero vol call = discounted fwd (got 4.8770575499, expected 4.8770575499)
+✓ Dividend reduces call price
+✓ Dividend increases put price
+
+--- Edge Cases ---
+✓ Extreme ITM call (S=1000, K=1) > spot intrinsic
+✓ Extreme OTM call (S=1, K=1000) near zero
+✓ Negative rate lowers call price
+✓ Put-call parity (r=-2%) (got 113.0805978453, expected 113.0805978453)
+✓ Near-expiry ITM call ≈ intrinsic (got 1.0000050000, expected 1.0000000000)
+✓ High vol (σ=5.0) call is positive
+✓ High vol call < spot
+
+--- NEON vs Scalar Price Cross-validation ---
+✓ NEON vs scalar: ATM call (got 10.4505756193, expected 10.4505756193)
+✓ NEON vs scalar: ATM put (got 5.5735180694, expected 5.5735180694)
+✓ NEON vs scalar: ITM call (mixed) (got 53.0576889547, expected 53.0576889547)
+✓ NEON vs scalar: OTM put (mixed) (got 48.5113739238, expected 48.5113739238)
+✓ NEON expired: ITM call = 10 (got 10.0000000000, expected 10.0000000000)
+✓ NEON expired: OTM call = 0 (got 0.0000000000, expected 0.0000000000)
+
+=== Summary ===
+Passed: 23
+Failed: 0
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"bsm_tests" end time: Apr 01 15:56 PDT
+"bsm_tests" time elapsed: 00:00:00
+----------------------------------------------------------
+
+2/3 Testing: iv_tests
+2/3 Test: iv_tests
+Command: "/home/damus/Projects/dispersion/build/tests/test_iv"
+Directory: /home/damus/Projects/dispersion/build/tests
+"iv_tests" start time: Apr 01 15:56 PDT
+Output:
+----------------------------------------------------------
+=== Implied Volatility Tests ===
+
+✓ Recover IV from ATM call (got 0.2500000000, expected 0.2500000000)
+✓ Recover IV from ATM put (got 0.2500000000, expected 0.2500000000)
+✓ Recover IV from ITM call (got 0.2500000000, expected 0.2500000000)
+✓ Recover IV from OTM call (got 0.2500000000, expected 0.2500000000)
+✓ Recover IV from short expiry (got 0.2500000000, expected 0.2500000000)
+✓ Zero expiry returns 0 (got 0.0000000000, expected 0.0000000000)
+
+--- Vectorized IV Tests ---
+  n=1000 fixed vol: max_err=2.98e-14 mean_err=3.35e-15
+✓ Vectorized IV recovery (1000 options, max_err < 1e-6)
+✓ Vectorized IV with odd count (999 options)
+✓ n=1 scalar tail (got 0.2500000000, expected 0.2500000000)
+✓ n=2 lane 0 (ATM call) (got 0.3000000000, expected 0.3000000000)
+✓ n=2 lane 1 (ITM put) (got 0.3000000000, expected 0.3000000000)
+
+--- Varying Volatility Tests ---
+✓ Vol 0.05 call recovery (got 0.0500000000, expected 0.0500000000)
+✓ Vol 0.05 put recovery (got 0.0500000000, expected 0.0500000000)
+✓ Vol 0.10 call recovery (got 0.1000000000, expected 0.1000000000)
+✓ Vol 0.10 put recovery (got 0.1000000000, expected 0.1000000000)
+✓ Vol 0.15 call recovery (got 0.1500000000, expected 0.1500000000)
+✓ Vol 0.15 put recovery (got 0.1500000000, expected 0.1500000000)
+✓ Vol 0.20 call recovery (got 0.2000000000, expected 0.2000000000)
+✓ Vol 0.20 put recovery (got 0.2000000000, expected 0.2000000000)
+✓ Vol 0.30 call recovery (got 0.3000000000, expected 0.3000000000)
+✓ Vol 0.30 put recovery (got 0.3000000000, expected 0.3000000000)
+✓ Vol 0.50 call recovery (got 0.5000000000, expected 0.5000000000)
+✓ Vol 0.50 put recovery (got 0.5000000000, expected 0.5000000000)
+✓ Vol 0.80 call recovery (got 0.8000000000, expected 0.8000000000)
+✓ Vol 0.80 put recovery (got 0.8000000000, expected 0.8000000000)
+✓ Vol 1.00 call recovery (got 1.0000000000, expected 1.0000000000)
+✓ Vol 1.00 put recovery (got 1.0000000000, expected 1.0000000000)
+✓ Vol 1.50 call recovery (got 1.5000000000, expected 1.5000000000)
+✓ Vol 1.50 put recovery (got 1.5000000000, expected 1.5000000000)
+✓ Vol 2.00 call recovery (got 2.0000000000, expected 2.0000000000)
+✓ Vol 2.00 put recovery (got 2.0000000000, expected 2.0000000000)
+
+--- Deep OTM Stress Test ---
+✓ Deep OTM put (S=135, K=100) (got 0.2000000000, expected 0.2000000000)
+✓ Deep OTM put (S=145, K=100) (got 0.2000000000, expected 0.2000000000)
+
+--- Convergence Failure Tests ---
+✓ Below-intrinsic call: IV in [0.001, 5.0]
+✓ Negative price: IV in [0.001, 5.0]
+✓ Zero price: IV in [0.001, 5.0]
+
+=== Summary ===
+Passed: 36
+Failed: 0
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"iv_tests" end time: Apr 01 15:56 PDT
+"iv_tests" time elapsed: 00:00:00
+----------------------------------------------------------
+
+3/3 Testing: dispersion_tests
+3/3 Test: dispersion_tests
+Command: "/home/damus/Projects/dispersion/build/tests/test_dispersion"
+Directory: /home/damus/Projects/dispersion/build/tests
+"dispersion_tests" start time: Apr 01 15:56 PDT
+Output:
+----------------------------------------------------------
+=== Dispersion Scanner Tests ===
+
+✓ Single component: rho = 1.0 (got 1.0000000000, expected 1.0000000000)
+✓ Two identical components (got 1.0000000000, expected 1.0000000000)
+✓ Zero correlation case (got 0.0000000000, expected 0.0000000000)
+✓ High correlation clamped to <= 1.0
+✓ High correlation clamped to >= -1.0
+✓ Empty components returns NAN
+
+--- Dispersion Opportunity Tests ---
+✓ Opportunities computed
+Best opportunity: ETF 4 with score 0.8315
+✓ Single component basket: rho = 1.0 (got 1.0000000000, expected 1.0000000000)
+Opportunities above threshold: 4
+✓ Suggested notional computed
+✓ Basket vega stored
+✓ Manual correlation matches (got 0.6516918429, expected 0.6516918429)
+
+=== Summary ===
+Passed: 11
+Failed: 0
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"dispersion_tests" end time: Apr 01 15:56 PDT
+"dispersion_tests" time elapsed: 00:00:00
+----------------------------------------------------------
+
+End testing: Apr 01 15:56 PDT
