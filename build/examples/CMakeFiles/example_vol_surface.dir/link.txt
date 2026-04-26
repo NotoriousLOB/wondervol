@@ -1,1 +1,0 @@
-/usr/bin/clang-22 CMakeFiles/example_vol_surface.dir/example_vol_surface.c.o -o example_vol_surface  -lm 

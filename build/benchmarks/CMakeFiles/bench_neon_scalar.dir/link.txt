@@ -1,1 +1,0 @@
-/usr/bin/clang-22 CMakeFiles/bench_neon_scalar.dir/bench_neon_scalar.c.o -o bench_neon_scalar  -lm 

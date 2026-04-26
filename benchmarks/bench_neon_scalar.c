@@ -1,4 +1,4 @@
-#include <dispersion_scanner.h>
+#include <wondervol.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -79,7 +79,7 @@ int main(int argc, char** argv) {
     printf("Running %d iterations for each implementation...\n\n", iterations);
     
     // Warmup
-    bsm_implied_vol_vec_arm(S, K, tau, r, q, prices, is_call, n, iv_neon);
+    bsm_implied_vol_vec(S, K, tau, r, q, prices, is_call, n, iv_neon);
     bsm_implied_vol_scalar_st(S, K, tau, r, q, prices, is_call, n, iv_scalar);
 
     // Benchmark 1: Scalar single-threaded
@@ -102,22 +102,33 @@ int main(int argc, char** argv) {
     }
     double scalar_omp_avg = scalar_omp_total / iterations;
 
-    // Benchmark 3: NEON + OpenMP
+    // Benchmark 3: SIMD + OpenMP
     double neon_total = 0.0;
     for (int iter = 0; iter < iterations; iter++) {
         double start = get_time_ns();
-        bsm_implied_vol_vec_arm(S, K, tau, r, q, prices, is_call, n, iv_neon);
+        bsm_implied_vol_vec(S, K, tau, r, q, prices, is_call, n, iv_neon);
         double end = get_time_ns();
         neon_total += (end - start) / 1e6;
     }
     double neon_avg = neon_total / iterations;
 
+#if defined(WV_ARCH_NEON)
+    const char* simd_label = "NEON (2-wide)";
+#elif defined(WV_ARCH_AVX512)
+    const char* simd_label = "AVX512 (8-wide)";
+#elif defined(WV_ARCH_AVX2)
+    const char* simd_label = "AVX2 (4-wide)";
+#else
+    const char* simd_label = "Scalar fallback";
+#endif
+
     printf("=== Results ===\n");
+    printf("SIMD backend  : %s\n", simd_label);
     printf("Scalar (ST)   : %.3f ms (%.0f opts/sec)\n", scalar_st_avg, n / (scalar_st_avg / 1000.0));
     printf("Scalar (OMP)  : %.3f ms (%.0f opts/sec)\n", scalar_omp_avg, n / (scalar_omp_avg / 1000.0));
-    printf("NEON + OMP    : %.3f ms (%.0f opts/sec)\n", neon_avg, n / (neon_avg / 1000.0));
-    printf("\nSpeedup (NEON vs Scalar ST)  : %.2fx\n", scalar_st_avg / neon_avg);
-    printf("Speedup (NEON vs Scalar OMP) : %.2fx\n", scalar_omp_avg / neon_avg);
+    printf("SIMD + OMP    : %.3f ms (%.0f opts/sec)\n", neon_avg, n / (neon_avg / 1000.0));
+    printf("\nSpeedup (SIMD vs Scalar ST)  : %.2fx\n", scalar_st_avg / neon_avg);
+    printf("Speedup (SIMD vs Scalar OMP) : %.2fx\n", scalar_omp_avg / neon_avg);
     printf("Speedup (OMP vs ST)          : %.2fx\n", scalar_st_avg / scalar_omp_avg);
 
     // Verify NEON results via repricing

@@ -1,4 +1,4 @@
-#include <dispersion_scanner.h>
+#include <wondervol.h>
 #include <stdio.h>
 #include <math.h>
 
@@ -32,15 +32,15 @@ void test_assert_double(const char* name, double actual, double expected, double
 int main(void) {
     printf("=== BSM Pricing Tests ===\n\n");
     
-    // Test 1: ATM call option (A&S CDF has ~7.5e-8 absolute error → ~1e-5 price error)
+    // Test 1: ATM call option — Cody erfc CDF has ~1.5e-15 absolute error → ~1e-12 price error
     double price_atm_call = bsm_price(100.0, 100.0, 1.0, 0.05, 0.0, 0.2, 1);
     test_assert_double("ATM call (S=K=100, T=1, r=5%, vol=20%)",
-                       price_atm_call, 10.4505835722, 1e-4);
+                       price_atm_call, 10.4505835721841546, 1e-10);
 
     // Test 2: ATM put option
     double price_atm_put = bsm_price(100.0, 100.0, 1.0, 0.05, 0.0, 0.2, 0);
     test_assert_double("ATM put (S=K=100, T=1, r=5%, vol=20%)",
-                       price_atm_put, 5.5735260222, 1e-4);
+                       price_atm_put, 5.5735260221841535, 1e-10);
 
     // Test 3: Deep ITM call
     double price_itm_call = bsm_price(150.0, 100.0, 1.0, 0.05, 0.0, 0.2, 1);
@@ -118,8 +118,31 @@ int main(void) {
     test_assert("High vol (σ=5.0) call is positive", price_high_vol > 0.0);
     test_assert("High vol call < spot", price_high_vol <= 100.0);
 
+    // === CDF Accuracy (Cody Algorithm 715) ===
+    printf("\n--- CDF Accuracy Tests (Cody Algorithm 715) ---\n");
+    {
+        /* High-precision reference values from Wolfram Alpha / scipy.special.ndtr */
+        struct { double x; double expected; } cases[] = {
+            { 0.0,   0.5                   },
+            { 1.0,   0.8413447460685429    },
+            {-1.0,   0.15865525393145705   },
+            { 3.0,   0.9986501019683699    },
+            {-3.0,   0.0013498980316301035 },
+            { 6.0,   0.999999999013412     },
+            {-6.0,   9.86587645037702e-10  },
+        };
+        int n_cases = (int)(sizeof(cases) / sizeof(cases[0]));
+        for (int i = 0; i < n_cases; i++) {
+            double got = norm_cdf(cases[i].x);
+            char label[64];
+            snprintf(label, sizeof(label), "norm_cdf(%.1f)", cases[i].x);
+            test_assert_double(label, got, cases[i].expected, 1e-13);
+        }
+    }
+
     // === NEON Price Cross-validation ===
     printf("\n--- NEON vs Scalar Price Cross-validation ---\n");
+#if defined(WV_ARCH_NEON)
     {
         // ATM
         double S_v[2] = {100.0, 100.0};
@@ -184,6 +207,9 @@ int main(void) {
         test_assert_double("NEON expired: ITM call = 10", vgetq_lane_f64(neon_exp, 0), 10.0, 1e-12);
         test_assert_double("NEON expired: OTM call = 0", vgetq_lane_f64(neon_exp, 1), 0.0, 1e-12);
     }
+#else
+    printf("  (NEON not available on this platform — skipping NEON cross-validation)\n");
+#endif
 
     printf("\n=== Summary ===\n");
     printf("Passed: %d\n", tests_passed);

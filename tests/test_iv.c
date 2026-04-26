@@ -1,4 +1,4 @@
-#include <dispersion_scanner.h>
+#include <wondervol.h>
 #include <stdio.h>
 #include <math.h>
 
@@ -39,27 +39,27 @@ int main(void) {
     // Test 1: Recover IV from BSM price
     double price = bsm_price(S, K, T, r, q, true_vol, 1);
     double iv = bsm_implied_vol(S, K, T, r, q, price, 1);
-    test_assert_double("Recover IV from ATM call", iv, true_vol, 1e-8);
-    
+    test_assert_double("Recover IV from ATM call", iv, true_vol, 1e-10);
+
     // Test 2: Recover IV from put
     double put_price = bsm_price(S, K, T, r, q, true_vol, 0);
     double iv_put = bsm_implied_vol(S, K, T, r, q, put_price, 0);
-    test_assert_double("Recover IV from ATM put", iv_put, true_vol, 1e-8);
-    
+    test_assert_double("Recover IV from ATM put", iv_put, true_vol, 1e-10);
+
     // Test 3: ITM option IV recovery
     double itm_price = bsm_price(120.0, 100.0, T, r, q, true_vol, 1);
     double iv_itm = bsm_implied_vol(120.0, 100.0, T, r, q, itm_price, 1);
-    test_assert_double("Recover IV from ITM call", iv_itm, true_vol, 1e-8);
-    
+    test_assert_double("Recover IV from ITM call", iv_itm, true_vol, 1e-10);
+
     // Test 4: OTM option IV recovery
     double otm_price = bsm_price(80.0, 100.0, T, r, q, true_vol, 1);
     double iv_otm = bsm_implied_vol(80.0, 100.0, T, r, q, otm_price, 1);
-    test_assert_double("Recover IV from OTM call", iv_otm, true_vol, 1e-8);
-    
+    test_assert_double("Recover IV from OTM call", iv_otm, true_vol, 1e-10);
+
     // Test 5: Short expiry
     double short_price = bsm_price(S, K, 0.1, r, q, true_vol, 1);
     double iv_short = bsm_implied_vol(S, K, 0.1, r, q, short_price, 1);
-    test_assert_double("Recover IV from short expiry", iv_short, true_vol, 1e-7);
+    test_assert_double("Recover IV from short expiry", iv_short, true_vol, 1e-9);
     
     // Test 6: Zero time to expiry
     double iv_zero = bsm_implied_vol(S, K, 0.0, r, q, 5.0, 1);
@@ -82,7 +82,7 @@ int main(void) {
         price_arr[i] = bsm_price(S_arr[i], K_arr[i], tau_arr[i], r_arr[i], q_arr[i], 0.2, is_call[i]);
     }
 
-    bsm_implied_vol_vec_arm(S_arr, K_arr, tau_arr, r_arr, q_arr, price_arr, is_call, n, iv_out);
+    bsm_implied_vol_vec(S_arr, K_arr, tau_arr, r_arr, q_arr, price_arr, is_call, n, iv_out);
 
     double max_err = 0.0, sum_err = 0.0;
     for (size_t i = 0; i < n; i++) {
@@ -91,16 +91,16 @@ int main(void) {
         sum_err += err;
     }
     printf("  n=1000 fixed vol: max_err=%.2e mean_err=%.2e\n", max_err, sum_err / n);
-    test_assert("Vectorized IV recovery (1000 options, max_err < 1e-6)", max_err < 1e-6);
+    test_assert("Vectorized IV recovery (1000 options, max_err < 1e-8)", max_err < 1e-8);
 
     // Test 8: Odd count (scalar tail)
-    bsm_implied_vol_vec_arm(S_arr, K_arr, tau_arr, r_arr, q_arr, price_arr, is_call, 999, iv_out);
+    bsm_implied_vol_vec(S_arr, K_arr, tau_arr, r_arr, q_arr, price_arr, is_call, 999, iv_out);
     max_err = 0.0;
     for (size_t i = 0; i < 999; i++) {
         double err = fabs(iv_out[i] - 0.2);
         if (err > max_err) max_err = err;
     }
-    test_assert("Vectorized IV with odd count (999 options)", max_err < 1e-6);
+    test_assert("Vectorized IV with odd count (999 options)", max_err < 1e-8);
 
     // Test 9: n=1 (scalar tail only, no NEON iteration)
     {
@@ -108,8 +108,8 @@ int main(void) {
         double r1[1] = {0.05}, q1[1] = {0.0}, p1[1], iv1[1];
         uint8_t c1[1] = {1};
         p1[0] = bsm_price(100.0, 100.0, 1.0, 0.05, 0.0, 0.25, 1);
-        bsm_implied_vol_vec_arm(S1, K1, tau1, r1, q1, p1, c1, 1, iv1);
-        test_assert_double("n=1 scalar tail", iv1[0], 0.25, 1e-8);
+        bsm_implied_vol_vec(S1, K1, tau1, r1, q1, p1, c1, 1, iv1);
+        test_assert_double("n=1 scalar tail", iv1[0], 0.25, 1e-10);
     }
 
     // Test 10: n=2 (one NEON iteration, no tail)
@@ -119,9 +119,9 @@ int main(void) {
         uint8_t c2[2] = {1, 0};
         p2[0] = bsm_price(100.0, 100.0, 1.0, 0.05, 0.0, 0.3, 1);
         p2[1] = bsm_price(110.0, 100.0, 0.5, 0.03, 0.0, 0.3, 0);
-        bsm_implied_vol_vec_arm(S2, K2, tau2, r2, q2, p2, c2, 2, iv2);
-        test_assert_double("n=2 lane 0 (ATM call)", iv2[0], 0.3, 1e-8);
-        test_assert_double("n=2 lane 1 (ITM put)", iv2[1], 0.3, 1e-8);
+        bsm_implied_vol_vec(S2, K2, tau2, r2, q2, p2, c2, 2, iv2);
+        test_assert_double("n=2 lane 0 (ATM call)", iv2[0], 0.3, 1e-10);
+        test_assert_double("n=2 lane 1 (ITM put)", iv2[1], 0.3, 1e-10);
     }
 
     // Test 11: Varying true vols (0.05 to 2.0)
@@ -141,13 +141,13 @@ int main(void) {
             cv[0] = 1;      cv[1] = 0;
             pv[0] = bsm_price(100.0, 100.0, 1.0, 0.05, 0.0, test_vols[v], 1);
             pv[1] = bsm_price(100.0, 100.0, 1.0, 0.05, 0.0, test_vols[v], 0);
-            bsm_implied_vol_vec_arm(Sv, Kv, tv, rv, qv, pv, cv, 2, ivv);
+            bsm_implied_vol_vec(Sv, Kv, tv, rv, qv, pv, cv, 2, ivv);
 
             char label[64];
             snprintf(label, sizeof(label), "Vol %.2f call recovery", test_vols[v]);
-            test_assert_double(label, ivv[0], test_vols[v], 1e-6);
+            test_assert_double(label, ivv[0], test_vols[v], 1e-8);
             snprintf(label, sizeof(label), "Vol %.2f put recovery", test_vols[v]);
-            test_assert_double(label, ivv[1], test_vols[v], 1e-6);
+            test_assert_double(label, ivv[1], test_vols[v], 1e-8);
         }
     }
 
@@ -163,9 +163,9 @@ int main(void) {
         double pv[2], ivv[2];
         pv[0] = bsm_price(135.0, 100.0, 0.9, 0.07, 0.0, 0.2, 0);
         pv[1] = bsm_price(145.0, 100.0, 1.3, 0.06, 0.0, 0.2, 0);
-        bsm_implied_vol_vec_arm(Sv, Kv, tv, rv, qv, pv, cv, 2, ivv);
-        test_assert_double("Deep OTM put (S=135, K=100)", ivv[0], 0.2, 1e-6);
-        test_assert_double("Deep OTM put (S=145, K=100)", ivv[1], 0.2, 1e-6);
+        bsm_implied_vol_vec(Sv, Kv, tv, rv, qv, pv, cv, 2, ivv);
+        test_assert_double("Deep OTM put (S=135, K=100)", ivv[0], 0.2, 1e-8);
+        test_assert_double("Deep OTM put (S=145, K=100)", ivv[1], 0.2, 1e-8);
     }
 
     // Test 13: Convergence failure — impossible prices (C3)

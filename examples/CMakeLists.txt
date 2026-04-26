@@ -1,8 +1,8 @@
 add_executable(example_basic example_basic.c)
-target_link_libraries(example_basic PRIVATE Dispersion::Scanner)
+target_link_libraries(example_basic PRIVATE WonderVol::wondervol)
 
 add_executable(example_dispersion_trade example_dispersion_trade.c)
-target_link_libraries(example_dispersion_trade PRIVATE Dispersion::Scanner)
+target_link_libraries(example_dispersion_trade PRIVATE WonderVol::wondervol)
 
 add_executable(example_vol_surface example_vol_surface.c)
-target_link_libraries(example_vol_surface PRIVATE Dispersion::Scanner)
+target_link_libraries(example_vol_surface PRIVATE WonderVol::wondervol)

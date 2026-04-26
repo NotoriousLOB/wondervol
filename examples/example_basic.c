@@ -1,4 +1,4 @@
-#include <dispersion_scanner.h>
+#include <wondervol.h>
 #include <stdio.h>
 
 int main(void) {
